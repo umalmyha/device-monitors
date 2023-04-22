@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/gin-gonic/gin"
 	"github.com/umalmyha/device-monitors/devices-service/internal/model"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -38,6 +39,11 @@ func main() {
 	if err = db.AutoMigrate(&model.Device{}); err != nil {
 		zap.S().Fatal(err)
 	}
+
+	r := gin.New()
+	r.Use(gin.Recovery())
+	dvcRoute := r.Group("/devices")
+	dvcRoute.GET("/devices")
 }
 
 func zapLogger(env string) (*zap.Logger, error) {

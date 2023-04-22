@@ -13,7 +13,8 @@
 
 # generated protobuf files
 *.pb.go
-gen
+*gen.go
+#gen
 
 # Dependency directories (remove the comment below to include it)
 vendor/

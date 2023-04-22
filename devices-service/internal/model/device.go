@@ -5,6 +5,14 @@ import (
 	"time"
 )
 
+type GetAllDevicesQuery struct {
+	Search        *string
+	FromLatitude  *float32
+	ToLatitude    *float32
+	FromLongitude *float32
+	ToLongitude   *float32
+}
+
 type Coords struct {
 	Latitude  float32
 	Longitude float32
