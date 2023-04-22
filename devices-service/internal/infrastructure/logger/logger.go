@@ -5,18 +5,11 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-var log *zap.SugaredLogger
-
-func Log() *zap.SugaredLogger {
-	if log == nil {
-		log = zap.S()
+func ForEnv(env string, opts ...zap.Option) (*zap.Logger, error) {
+	if env == "production" {
+		return Production(opts...)
 	}
-	return log
-}
-
-func SetGlobal(logger *zap.Logger) {
-	zap.ReplaceGlobals(logger)
-	log = zap.S()
+	return Development(opts...)
 }
 
 func Production(opts ...zap.Option) (*zap.Logger, error) {
