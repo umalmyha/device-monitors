@@ -15,6 +15,7 @@ type DatabaseConfig struct {
 
 type Config struct {
 	Environment    string `env:"ENVIRONMENT" envDefault:"development"`
+	Port           int    `env:"PORT" envDefault:"8080"`
 	DatabaseConfig DatabaseConfig
 }
 

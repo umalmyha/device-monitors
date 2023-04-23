@@ -6,11 +6,11 @@ import (
 )
 
 type GetAllDevicesQuery struct {
-	Search        *string
-	FromLatitude  *float32
-	ToLatitude    *float32
-	FromLongitude *float32
-	ToLongitude   *float32
+	Search        *string  `form:"search"`
+	FromLatitude  *float32 `form:"fromLatitude"`
+	ToLatitude    *float32 `form:"toLatitude"`
+	FromLongitude *float32 `form:"fromLongitude"`
+	ToLongitude   *float32 `form:"toLongitude"`
 }
 
 type Coords struct {

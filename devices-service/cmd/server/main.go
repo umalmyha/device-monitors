@@ -1,15 +1,22 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/umalmyha/device-monitors/devices-service/internal/model"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
+	"fmt"
+	"github.com/umalmyha/device-monitors/devices-service/internal/query"
 	"log"
 
+	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
+
 	"github.com/umalmyha/device-monitors/devices-service/internal/config"
+	"github.com/umalmyha/device-monitors/devices-service/internal/handler"
 	"github.com/umalmyha/device-monitors/devices-service/internal/infrastructure/db/mysql"
 	"github.com/umalmyha/device-monitors/devices-service/internal/infrastructure/logger"
+	"github.com/umalmyha/device-monitors/devices-service/internal/middleware"
+	"github.com/umalmyha/device-monitors/devices-service/internal/model"
+	"github.com/umalmyha/device-monitors/devices-service/internal/repository"
+	"github.com/umalmyha/device-monitors/devices-service/internal/service"
 )
 
 func main() {
@@ -36,14 +43,33 @@ func main() {
 		zap.S().Fatal(err)
 	}
 
+	query.SetDefault(db)
+
 	if err = db.AutoMigrate(&model.Device{}); err != nil {
 		zap.S().Fatal(err)
 	}
 
+	// repo
+	deviceRepo := repository.NewMySqlDeviceRepository(db)
+
+	// service
+	deviceSrv := service.NewDeviceService(deviceRepo)
+
+	// handler
+	deviceHandler := handler.NewDeviceHandler(deviceSrv)
+
 	r := gin.New()
-	r.Use(gin.Recovery())
-	dvcRoute := r.Group("/devices")
-	dvcRoute.GET("/devices")
+	r.Use(middleware.ErrorMiddleware, gin.Recovery())
+	deviceGrp := r.Group("/devices")
+	deviceGrp.GET("/", deviceHandler.FindAll)
+	deviceGrp.GET("/:id", deviceHandler.FindByID)
+	deviceGrp.POST("/", deviceHandler.Create)
+	deviceGrp.PUT("/:id", deviceHandler.Update)
+	deviceGrp.DELETE("/:id", deviceHandler.Delete)
+
+	if err = r.Run(fmt.Sprintf(":%d", cfg.Port)); err != nil {
+		zap.S().Fatal(err)
+	}
 }
 
 func zapLogger(env string) (*zap.Logger, error) {

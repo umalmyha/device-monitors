@@ -12,25 +12,6 @@ services:
       - "3306:3306"
     volumes:
       - devices-data:/var/lib/mysql
-    healthcheck:
-      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
-      interval: 3s
-      timeout: 10s
-      retries: 3
-
-  devices-service:
-    build:
-      context: ./devices-service
-      args:
-        PORT: ${DEVICES_SERVICE_PORT}
-    ports:
-      - "${DEVICES_SERVICE_PORT}"
-    environment:
-      - ENVIRONMENT=${ENVIRONMENT}
-      - MYSQL_URL=${DEVICES_MYSQL_USER}:${DEVICES_MYSQL_PASSWORD}@tcp(devices-db:3306)/${DEVICES_MYSQL_DATABASE}
-    depends_on:
-      devices-db:
-        condition: service_healthy
 
 volumes:
   devices-data:

@@ -2,11 +2,14 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"fmt"
+
 	"github.com/google/uuid"
+	"gorm.io/gorm"
+
 	"github.com/umalmyha/device-monitors/devices-service/internal/model"
 	"github.com/umalmyha/device-monitors/devices-service/internal/query"
-	"gorm.io/gorm"
 )
 
 type MySqlDeviceRepository struct {
@@ -17,9 +20,13 @@ func NewMySqlDeviceRepository(db *gorm.DB) *MySqlDeviceRepository {
 	return &MySqlDeviceRepository{db: db}
 }
 
-func (r *MySqlDeviceRepository) Create(ctx context.Context, dvc *model.Device) (*model.Device, error) {
-	if err := query.Device.WithContext(ctx).Create(dvc); err != nil {
-		return nil, fmt.Errorf("MySqlDeviceRepository - Create: %w", err)
+func (r *MySqlDeviceRepository) FindByName(ctx context.Context, name string) (*model.Device, error) {
+	dvc, err := query.Device.WithContext(ctx).FindByName(name)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("MySqlDeviceRepository - FindByName: %w", err)
 	}
 	return dvc, nil
 }
@@ -35,7 +42,17 @@ func (r *MySqlDeviceRepository) FindAll(ctx context.Context, qr model.GetAllDevi
 func (r *MySqlDeviceRepository) FindByID(ctx context.Context, id uuid.UUID) (*model.Device, error) {
 	dvc, err := query.Device.WithContext(ctx).Where(query.Device.ID.Eq(id)).First()
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
 		return nil, fmt.Errorf("MySqlDeviceRepository - FindByID: %w", err)
+	}
+	return dvc, nil
+}
+
+func (r *MySqlDeviceRepository) Create(ctx context.Context, dvc *model.Device) (*model.Device, error) {
+	if err := query.Device.WithContext(ctx).Create(dvc); err != nil {
+		return nil, fmt.Errorf("MySqlDeviceRepository - Create: %w", err)
 	}
 	return dvc, nil
 }
